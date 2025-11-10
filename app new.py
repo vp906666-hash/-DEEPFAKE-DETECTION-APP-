@@ -1,3 +1,4 @@
+# FINAL FIX CODE BLOCK (Sirf is block ko copy kariye)
 import streamlit as st
 import numpy as np
 import cv2
@@ -13,29 +14,23 @@ FILE_ID = "1AHj92kN9KG1O1U1vvcp6-iqRJMMIwPEY" # Aapki File ID
 @st.cache_resource
 def download_model(file_id):
     st.write("Downloading model from Google Drive...")
-    # Direct Google Drive Download URL (Sabse Stable Format)
     download_url = f"https://drive.google.com/uc?export=download&id={file_id}"
-    
     response = requests.get(download_url, stream=True)
-    
-    # Download karna
     with open(MODEL_PATH, 'wb') as file:
-        for data in response.iter_content(chunk_size=1024*1024): # 1MB chunks
+        for data in response.iter_content(chunk_size=1024*1024):
             file.write(data)
-    
     return load_model(MODEL_PATH)
 
 try:
     model = download_model(FILE_ID) 
     st.success("✅ Model Loaded Successfully!")
 except Exception as e:
-    st.error(f"🔴 ERROR: Model download/load nahi ho paya. Check Drive Link/File ID. Error: {e}")
+    st.error(f"🔴 ERROR: Model download/load nahi ho paya. Error: {e}")
     st.stop()
     
 # Haarcascade setup
-HAARCASCADE_PATH = cv2.data.haarcascades + 'haarcascade_frontalface_default.xml'
+HAARCASCADE_PATH = cv2.data.haascades + 'haarcascade_frontalface_default.xml'
 if not os.path.exists(HAARCASCADE_PATH):
-    # Yeh part Streamlit Cloud par aam taur par fail nahi hota
     st.error("Haarcascade file not found!")
     st.stop()
 face_cascade = cv2.CascadeClassifier(HAARCASCADE_PATH)
@@ -90,10 +85,10 @@ if uploaded_file is not None:
             face_input_expanded = np.expand_dims(face_input, axis=0)
             prediction = model.predict(face_input_expanded)[0][0]
             
-            # --- CONFIDENCE FIX: Yahan confidence aur label define ho rahe hain ---
+            # --- FINAL FIX: Prediction Logic Ulta Karna ---
             confidence = prediction if prediction > 0.5 else 1 - prediction
-            label = "DEEPFAKE" if prediction > 0.5 else "REAL"
-            # ---------------------------------------------------------------------
+            label = "REAL" if prediction > 0.5 else "DEEPFAKE"  # <--- Yahan REAL aur DEEPFAKE switch hue
+            # -----------------------------------------------
 
             st.markdown("---")
             st.metric(label="Predicted Label", value=label)
